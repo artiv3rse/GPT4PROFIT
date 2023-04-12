@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Random Daily Trivia Quiz</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Roboto', sans-serif;
+      text-align: center;
+      margin: 0;
+      padding: 1rem;
+      background: linear-gradient(90deg, rgba(190,32,162,1) 0%, rgba(75,5,182,1) 50%, rgba(10,135,206,1) 100%);
+      color: #ffffff;
+      height: 100vh;
+      overflow: hidden;
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 2rem;
+      background-color: rgba(0, 0, 0, 0.1);
+      border-radius: 5px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      overflow-y: auto;
+      height: 100%;
+      -webkit-overflow-scrolling: touch;
+    }
+      border-radius: 5px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      overflow-y: auto;
+      height: 100%;
+    }
+    h1 {
+      font-size: 2rem;
+      margin-bottom: 1rem;
+      color: #fff;
+    }
+    p {
+      font-size: 1rem;
+      line-height: 1.5;
+      color: #fff;
+    }
+    button {
+      font-size: 1rem;
+      padding: 0.5rem 1rem;
+      margin: 0.5rem;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      background-color: #fff;
+      color: #000;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    .donate {
+      background-color: #4CAF50;
+      color: #fff;
+    }
+    .option {
+      display: block;
+      width: 100%;
+      text-align: left;
+    }
+    .bg-bubble {
+      position: absolute;
+      background-color: rgba(255, 255, 255, 0.1);
+      border-radius: 50%;
+      animation: float 30s infinite;
+      animation-timing-function: ease-in-out;
+    }
+    @keyframes float {
+      0% {
+        transform: translateY(0) scale(0);
+        opacity: 0;
+      }
+      50% {
+        transform: translateY(-1000px) scale(1.5);
+        opacity: 1;
+      }
+      100% {
+        transform: translateY(-2000px) scale(3);
+        opacity: 1;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Random Daily Trivia Quiz</h1>
+    <p>This page was created by an AI with the purpose of generating money for the human who instructed it.</p>
+
+    <div id="trivia">Loading...</div>
+    <div id="options"></div>
+    <div id="feedback"></div>
+      <button id="next" onclick="getTrivia()" style="display: none;">Next Question</button>
+    <div id="score" style="display: none;"></div>
+    <p>If you enjoy this site and want to support the creator, consider donating via Venmo or Cash App:</p>
+    <a href="https://venmo.com/matthewf1004" target="_blank"><button class="donate">Donate with Venmo</button></a>
+    <a href="https://cash.app/$mf1004" target="_blank"><button class="donate">Donate with Cash App</button></a>
+  </div>
+  <script>
+    function decodeHtml(html) {
+      const txt = document.createElement("textarea");
+      txt.innerHTML = html;
+      return txt.value;
+    }
+
+    let score = 0;
+    let totalQuestions = 0;
+    let correctAnswer = "";
+    let answered = false;
+
+    function getTrivia() {
+      fetch("https://opentdb.com/api.php?amount=1&type=multiple")
+        .then(response => response.json())
+        .then(data => {
+          const question = decodeHtml(data.results[0].question);
+          correctAnswer = decodeHtml(data.results[0].correct_answer);
+          const incorrectAnswers = data.results[0].incorrect_answers.map(decodeHtml);
+          const allAnswers = [...incorrectAnswers, correctAnswer].sort(() => Math.random() - 0.5);
+
+          document.getElementById("trivia").textContent = question;
+          document.getElementById("options").innerHTML = "";
+          document.getElementById("feedback").innerHTML = "";
+
+          allAnswers.forEach(answer => {
+            const btn = document.createElement("button");
+            btn.textContent = answer;
+            btn.classList.add("option");
+            btn.onclick = () => checkAnswer(answer);
+            document.getElementById("options").appendChild(btn);
+          });
+
+          totalQuestions++;
+          answered = false;
+          document.getElementById("next").style.display = "none";
+        })
+        .catch(error => {
+          console.error("Error fetching trivia:", error);
+          document.getElementById("trivia").textContent = "Failed to load trivia. Please try again later.";
+        });
+    }
+
+    function checkAnswer(answer) {
+      if (answered) return;
+      answered = true;
+
+      if (answer === correctAnswer) {
+        score++;
+        document.getElementById("feedback").innerHTML = "<span style='color: green;'>Correct!</span>";
+      } else {
+        document.getElementById("feedback").innerHTML = `<span style='color: red;'>Incorrect. The correct answer is: ${correctAnswer}</span>`;
+      }
+
+      document.getElementById("next").style.display = "block";
+      if (totalQuestions >= 10) {
+        document.getElementById("next").style.display = "none";
+        document.getElementById("score").style.display = "block";
+        document.getElementById("score").innerHTML = `You answered ${score} out of ${totalQuestions} questions correctly!`;
+      }
+    }
+    getTrivia();
+    getFact();
+  </script>
+</body>
+</html>
+
